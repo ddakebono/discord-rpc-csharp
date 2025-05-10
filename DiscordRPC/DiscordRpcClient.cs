@@ -690,11 +690,12 @@ namespace DiscordRPC
         /// </summary>
         /// <param name="steamAppID">Optional Steam ID. If supplied, Discord will launch the game through steam instead of directly calling it.</param>
         /// <param name="executable">The path to the executable. If null, the path to the current executable will be used instead.</param>
+        /// <param name="forceLinux">Force the UriScheme creator to use the UnixUriSchemeCreator (For proton/wine)</param>
         /// <returns></returns>
-        public bool RegisterUriScheme(string steamAppID = null, string executable = null)
+        public bool RegisterUriScheme(string steamAppID = null, string executable = null, bool forceLinux = false)
         {
             var urischeme = new UriSchemeRegister(_logger, ApplicationID, steamAppID, executable);
-            return HasRegisteredUriScheme = urischeme.RegisterUriScheme();
+            return HasRegisteredUriScheme = urischeme.RegisterUriScheme(forceLinux);
         }
 
         /// <summary>

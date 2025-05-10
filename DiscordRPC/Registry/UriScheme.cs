@@ -45,37 +45,40 @@ namespace DiscordRPC.Registry
         /// <summary>
         /// Registers the URI scheme, using the correct creator for the correct platform
         /// </summary>
-        public bool RegisterUriScheme()
+        public bool RegisterUriScheme(bool forceLinux)
         {
             //Get the creator
             IUriSchemeCreator creator = null;
-            switch(Environment.OSVersion.Platform)
-            {
-                case PlatformID.Win32Windows:
-                case PlatformID.Win32S:
-                case PlatformID.Win32NT:
-                case PlatformID.WinCE:
-                    _logger.Trace("Creating Windows Scheme Creator");
-                    creator = new WindowsUriSchemeCreator(_logger);
-                    break;
 
-                case PlatformID.Unix:
+            if (!forceLinux)
+            {
+                switch (Environment.OSVersion.Platform)
+                {
+                    case PlatformID.Win32Windows:
+                    case PlatformID.Win32S:
+                    case PlatformID.Win32NT:
+                    case PlatformID.WinCE:
+                        _logger.Trace("Creating Windows Scheme Creator");
+                        creator = new WindowsUriSchemeCreator(_logger);
+                        break;
+
+                    case PlatformID.Unix:
 #if USE_RUNTIME_INFO
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                    {
-                        _logger.Trace("Creating MacOSX Scheme Creator");
-                        creator = new MacUriSchemeCreator(_logger);
-                    }
-                    else
-                    {
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                        {
+                            _logger.Trace("Creating MacOSX Scheme Creator");
+                            creator = new MacUriSchemeCreator(_logger);
+                        }
+                        else
+                        {
 #endif
-                        _logger.Trace("Creating Unix Scheme Creator");
-                        creator = new UnixUriSchemeCreator(_logger);
+                            _logger.Trace("Creating Unix Scheme Creator");
+                            creator = new UnixUriSchemeCreator(_logger);
 #if USE_RUNTIME_INFO
-                    }
+                        }
 #endif
-                    break;
-                
+                        break;
+
 #if !USE_RUNTIME_INFO
                 case PlatformID.MacOSX:
                     _logger.Trace("Creating MacOSX Scheme Creator");
@@ -83,9 +86,15 @@ namespace DiscordRPC.Registry
                     break;
 #endif
 
-                default:
-                    _logger.Error("Unkown Platform: {0}", Environment.OSVersion.Platform);
-                    throw new PlatformNotSupportedException("Platform does not support registration.");
+                    default:
+                        _logger.Error("Unkown Platform: {0}", Environment.OSVersion.Platform);
+                        throw new PlatformNotSupportedException("Platform does not support registration.");
+                }
+            }
+            else
+            {
+                //If forceLinux is set assume the user is on Linux
+                creator = new UnixUriSchemeCreator(_logger);
             }
 
             //Regiser the app
